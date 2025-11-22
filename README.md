@@ -429,7 +429,6 @@ Tyro now ships with a `tyro:*` CLI toolbox so you can manage roles, users, and t
 | `tyro:star`                                                              | Opens the GitHub repo so you can give Tyro a ⭐.                                                                                                |
 | `tyro:doc`                                                               | Opens the documentation site (or prints the URL with `--no-open`).                                                                              |
 | `tyro:about`                                                             | Summarises Tyro's mission, author, and useful links right in the terminal.                                                                      |
-| `tyro:why`                                                               | Recaps the elevator pitch when you need to convince a teammate.                                                                                 |
 
 Every command accepts non-interactive `--option` flags, making them automation-friendly and easy to exercise inside CI or artisan tests.
 

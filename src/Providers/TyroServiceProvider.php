@@ -46,7 +46,7 @@ use HasinHayder\Tyro\Console\Commands\UpdateUserCommand;
 use HasinHayder\Tyro\Console\Commands\UserPrivilegesCommand;
 use HasinHayder\Tyro\Console\Commands\UserRolesCommand;
 use HasinHayder\Tyro\Console\Commands\VersionCommand;
-use HasinHayder\Tyro\Console\Commands\WhyCommand;
+
 use HasinHayder\Tyro\Http\Middleware\EnsureAnyTyroPrivilege;
 use HasinHayder\Tyro\Http\Middleware\EnsureAnyTyroRole;
 use HasinHayder\Tyro\Http\Middleware\EnsureTyroPrivilege;
@@ -198,7 +198,7 @@ class TyroServiceProvider extends ServiceProvider {
             UserPrivilegesCommand::class,
             UserRolesCommand::class,
             VersionCommand::class,
-            WhyCommand::class,
+
         ]);
     }
 }
