@@ -14,7 +14,11 @@ class AboutCommand extends BaseTyroCommand {
         $this->line(str_repeat('-', 40));
         $this->line('• Version: ' . $version);
         $this->line('• Author: Hasin Hayder (@hasinhayder)');
-        $this->line('• Description: Zero-config API boilerplate with Sanctum abilities, roles, suspensions, and artisan tooling.');
+        $this->line('• Description: Tyro ships a production-ready Laravel API surface with authentication, authorization and powerful CLI commands in minutes.');
+        $this->line('• Auth stack: login, registration, profile, roles, privileges, and Sanctum tokens with abilities auto-derived from role + privilege slugs.');
+        $this->line('• Security rails: user suspension CLI + REST endpoints that revoke every active token the moment an account is frozen.');
+        $this->line('• Automation toolbox: 40+ `tyro:*` commands for onboarding, seeding, logouts, audits, and now quick-token safety checks.');
+        $this->line('• Docs + samples: seeders, factories, a Postman collection, and a README packed with route + middleware examples.');
         $this->line('• GitHub: https://github.com/hasinhayder/tyro');
 
         return self::SUCCESS;

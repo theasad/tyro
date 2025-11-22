@@ -644,7 +644,7 @@ class ConsoleCommandTest extends TestCase {
     public function test_flush_roles_command_truncates_roles(): void {
         $this->assertGreaterThan(0, Role::count());
 
-        $this->artisan('tyro:flush-roles', ['--force' => true])
+        $this->artisan('tyro:purge-roles', ['--force' => true])
             ->assertExitCode(0);
 
         $this->assertSame(0, Role::count());
