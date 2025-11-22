@@ -1,4 +1,4 @@
-![Tyro](https://res.cloudinary.com/roxlox/image/upload/v1653133921/tyro/tyro-trnsparent_jcsl4l.png)
+![Tyro](https://res.cloudinary.com/roxlox/image/upload/v1763790856/tyro/tyro-banner_cecuup.jpg)
 
 # Tyro Package
 
