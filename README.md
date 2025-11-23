@@ -540,7 +540,100 @@ class ApiTokenController
 }
 ```
 
-### How do I list the privileges attached to a specific role?
+### How do I assign or remove roles to a user from code?
+
+```php
+use HasinHayder\Tyro\Models\Role;
+use App\Models\User;
+
+class UserRoleController
+{
+	public function assignRoles()
+	{
+		$user = User::find(1);
+
+		// Assign a single role
+		$editorRole = Role::where('slug', 'editor')->first();
+		$user->assignRole($editorRole);
+
+		// Assign multiple roles
+		$adminRole = Role::where('slug', 'admin')->first();
+		$user->assignRole($adminRole);
+
+		// Or use the roles relationship directly
+		$customerRole = Role::where('slug', 'customer')->first();
+		$user->roles()->attach($customerRole->id);
+	}
+
+	public function removeRoles()
+	{
+		$user = User::find(1);
+
+		// Remove a single role
+		$editorRole = Role::where('slug', 'editor')->first();
+		$user->removeRole($editorRole);
+
+		// Or use the roles relationship directly
+		$user->roles()->detach($editorRole->id);
+
+		// Remove all roles
+		$user->roles()->detach();
+	}
+}
+```
+
+### How do I assign or remove privileges to a role?
+
+```php
+use HasinHayder\Tyro\Models\Role;
+use HasinHayder\Tyro\Models\Privilege;
+
+class RolePrivilegeController
+{
+	public function assignPrivileges()
+	{
+		$role = Role::where('slug', 'editor')->first();
+
+		// Assign a single privilege
+		$reportPrivilege = Privilege::where('slug', 'reports.run')->first();
+		$role->privileges()->attach($reportPrivilege->id);
+
+		// Assign multiple privileges at once
+		$billingPrivilege = Privilege::where('slug', 'billing.view')->first();
+		$exportPrivilege = Privilege::where('slug', 'reports.export')->first();
+		$role->privileges()->attach([
+			$billingPrivilege->id,
+			$exportPrivilege->id,
+		]);
+
+		// Or sync privileges (replaces all existing privileges)
+		$role->privileges()->sync([
+			$reportPrivilege->id,
+			$billingPrivilege->id,
+		]);
+	}
+
+	public function removePrivileges()
+	{
+		$role = Role::where('slug', 'editor')->first();
+
+		// Remove a single privilege
+		$reportPrivilege = Privilege::where('slug', 'reports.run')->first();
+		$role->privileges()->detach($reportPrivilege->id);
+
+		// Remove multiple privileges
+		$role->privileges()->detach([
+			$reportPrivilege->id,
+			$billingPrivilege->id,
+		]);
+
+		// Remove all privileges from the role
+		$role->privileges()->detach();
+	}
+}
+```
+
+### How do I get the list of privileges in a role?
 
 ```php
 use HasinHayder\Tyro\Models\Role;
@@ -549,12 +642,52 @@ class RolePrivilegesController
 {
 	public function show(Role $role)
 	{
+		// Load privileges relationship
 		$role->loadMissing('privileges:id,name,slug');
 
 		return response()->json([
 			'role' => $role->only(['id', 'name', 'slug']),
 			'privileges' => $role->privileges,
 		]);
+	}
+
+	public function getPrivilegeSlugs(Role $role)
+	{
+		// Get only the privilege slugs as an array
+		$privilegeSlugs = $role->privileges()->pluck('slug')->toArray();
+
+		return response()->json(['privilege_slugs' => $privilegeSlugs]);
+	}
+}
+```
+
+### How do I check if a role has specific privileges?
+
+The `Role` model includes `hasPrivilege()` and `hasPrivileges()` methods for checking privileges:
+
+```php
+use HasinHayder\Tyro\Models\Role;
+
+class RoleCheckController
+{
+	public function checkPrivileges()
+	{
+		$role = Role::where('slug', 'editor')->first();
+
+		// Check if role has a single privilege
+		if ($role->hasPrivilege('reports.run')) {
+			// Role has the reports.run privilege
+		}
+
+		// Check if role has ALL specified privileges
+		if ($role->hasPrivileges(['reports.run', 'billing.view'])) {
+			// Role has both reports.run AND billing.view privileges
+		}
+
+		// Check if role has ANY of the specified privileges
+		$hasAny = $role->privileges()
+			->whereIn('slug', ['reports.run', 'billing.view'])
+			->exists();
 	}
 }
 ```
