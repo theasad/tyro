@@ -3,24 +3,22 @@
 namespace HasinHayder\Tyro\Http\Controllers;
 
 use HasinHayder\Tyro\Models\Role;
+use HasinHayder\Tyro\Support\PasswordRules;
 use HasinHayder\Tyro\Support\TyroCache;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Exceptions\MissingAbilityException;
 
-class UserController extends Controller
-{
-    public function index()
-    {
+class UserController extends Controller {
+    public function index() {
         return $this->userQuery()->get();
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $creds = $request->validate([
             'email' => 'required|email',
-            'password' => 'required',
+            'password' => array_merge(['required'], PasswordRules::get(['name' => $request->name, 'email' => $request->email])),
             'name' => 'nullable|string',
         ]);
 
@@ -45,8 +43,7 @@ class UserController extends Controller
         return $user;
     }
 
-    public function login(Request $request)
-    {
+    public function login(Request $request) {
         $creds = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -55,7 +52,7 @@ class UserController extends Controller
         $userClass = $this->userClass();
         $user = $userClass::where('email', $creds['email'])->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response(['error' => 1, 'message' => 'invalid credentials'], 401);
         }
 
@@ -73,14 +70,21 @@ class UserController extends Controller
         return response(['error' => 0, 'id' => $user->id, 'name' => $user->name, 'token' => $token], 200);
     }
 
-    public function show($user)
-    {
+    public function show($user) {
         return $this->resolveUser($user);
     }
 
-    public function update(Request $request, $user)
-    {
+    public function update(Request $request, $user) {
         $user = $this->resolveUser($user);
+
+        if ($request->password) {
+            $request->validate([
+                'password' => PasswordRules::get([
+                    'name' => $request->name ?? $user->name,
+                    'email' => $request->email ?? $user->email
+                ]),
+            ]);
+        }
 
         $user->name = $request->name ?? $user->name;
         $user->email = $request->email ?? $user->email;
@@ -103,8 +107,7 @@ class UserController extends Controller
         throw new MissingAbilityException('Not Authorized');
     }
 
-    public function destroy($user)
-    {
+    public function destroy($user) {
         $user = $this->resolveUser($user);
         $adminRole = Role::where('slug', 'admin')->first();
 
@@ -121,25 +124,21 @@ class UserController extends Controller
         return response(['error' => 0, 'message' => 'user deleted']);
     }
 
-    public function me(Request $request)
-    {
+    public function me(Request $request) {
         return $request->user();
     }
 
-    protected function userClass(): string
-    {
+    protected function userClass(): string {
         return config('tyro.models.user', config('auth.providers.users.model', 'App\\Models\\User'));
     }
 
-    protected function userQuery()
-    {
+    protected function userQuery() {
         $class = $this->userClass();
 
         return $class::query();
     }
 
-    protected function resolveUser($user)
-    {
+    protected function resolveUser($user) {
         if ($user instanceof \Illuminate\Contracts\Auth\Authenticatable) {
             return $user;
         }
@@ -147,8 +146,7 @@ class UserController extends Controller
         return $this->userQuery()->findOrFail($user);
     }
 
-    protected function userIsSuspended($user): bool
-    {
+    protected function userIsSuspended($user): bool {
         if (method_exists($user, 'isSuspended')) {
             return $user->isSuspended();
         }

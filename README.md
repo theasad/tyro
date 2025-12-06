@@ -219,23 +219,23 @@ Need something narrower? Use `tyro:seed-roles` or `tyro:seed-privileges` to refr
 
 The `HasTyroRoles` trait gives your User model a complete API for roles, privileges, and suspensions. These methods are the same ones used by Tyro's routes and CLI commands, so your code stays consistent:
 
-| Method                                   | Category   | Description                                                                                                          |
-| ---------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
-| `roles(): BelongsToMany`                 | Roles      | Returns the eager-loadable relationship for roles. Chain additional constraints as needed.                           |
-| `assignRole(Role $role): void`           | Roles      | Attaches a role without detaching existing ones.                                                                     |
-| `removeRole(Role $role): void`           | Roles      | Detaches the given role from the user.                                                                               |
-| `hasRole(string $role): bool`            | Roles      | Checks if the user has the specified role slug (supports wildcard `*`).                                              |
-| `hasRoles(array $roles): bool`           | Roles      | Returns `true` only if the user holds every role in the array.                                                       |
-| `tyroRoleSlugs(): array`                 | Roles      | Returns an array of all role slugs for the user (cached for performance).                                            |
-| `privileges(): Collection`               | Privileges | Returns all unique privileges inherited through the user's roles.                                                    |
-| `hasPrivileges(array $privileges): bool` | Privileges | Returns `true` only if the user has all specified privileges.                                                        |
-| `hasPrivilege(string $privilege): bool`  | Privileges | Checks if the user has a specific privilege.                                                                         |
-| `tyroPrivilegeSlugs(): array`            | Privileges | Returns an array of all privilege slugs for the user (cached for performance).                                       |
-| `can($ability, $arguments = []): bool`   | Gate       | Checks privilege, then role, then falls back to Laravel Gate. Use this for unified permission checks.                |
-| `suspend(?string $reason = null): void`  | Suspension | Suspends the user, stores optional reason, and revokes all Sanctum tokens.                                           |
-| `unsuspend(): void`                      | Suspension | Clears suspension without touching roles or privileges.                                                              |
-| `isSuspended(): bool`                    | Suspension | Returns `true` if the user is currently suspended.                                                                   |
-| `getSuspensionReason(): ?string`         | Suspension | Returns the stored suspension reason (or `null`).                                                                    |
+| Method                                   | Category   | Description                                                                                           |
+| ---------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------- |
+| `roles(): BelongsToMany`                 | Roles      | Returns the eager-loadable relationship for roles. Chain additional constraints as needed.            |
+| `assignRole(Role $role): void`           | Roles      | Attaches a role without detaching existing ones.                                                      |
+| `removeRole(Role $role): void`           | Roles      | Detaches the given role from the user.                                                                |
+| `hasRole(string $role): bool`            | Roles      | Checks if the user has the specified role slug (supports wildcard `*`).                               |
+| `hasRoles(array $roles): bool`           | Roles      | Returns `true` only if the user holds every role in the array.                                        |
+| `tyroRoleSlugs(): array`                 | Roles      | Returns an array of all role slugs for the user (cached for performance).                             |
+| `privileges(): Collection`               | Privileges | Returns all unique privileges inherited through the user's roles.                                     |
+| `hasPrivileges(array $privileges): bool` | Privileges | Returns `true` only if the user has all specified privileges.                                         |
+| `hasPrivilege(string $privilege): bool`  | Privileges | Checks if the user has a specific privilege.                                                          |
+| `tyroPrivilegeSlugs(): array`            | Privileges | Returns an array of all privilege slugs for the user (cached for performance).                        |
+| `can($ability, $arguments = []): bool`   | Gate       | Checks privilege, then role, then falls back to Laravel Gate. Use this for unified permission checks. |
+| `suspend(?string $reason = null): void`  | Suspension | Suspends the user, stores optional reason, and revokes all Sanctum tokens.                            |
+| `unsuspend(): void`                      | Suspension | Clears suspension without touching roles or privileges.                                               |
+| `isSuspended(): bool`                    | Suspension | Returns `true` if the user is currently suspended.                                                    |
+| `getSuspensionReason(): ?string`         | Suspension | Returns the stored suspension reason (or `null`).                                                     |
 
 Tyro caches role and privilege slugs per user so authorization checks never hit the database on every request. The cache respects your `config/tyro.php` settings and is automatically invalidated when you modify roles, privileges, or assignments.
 
@@ -285,6 +285,32 @@ TYRO_DISABLE_API=true
 When `TYRO_DISABLE_API` is `true`, Tyro skips loading its `routes/api.php` file so you can provide a fully custom HTTP surface (or disable it in worker contexts).
 
 Need an emergency token rotation? Run `php artisan tyro:logout-all-users --force` to revoke every Sanctum token the package has issued.
+
+### Password Security
+
+Tyro includes robust password validation that you can configure via your `.env` file. These settings apply to user registration, password updates, and the `tyro:create-user` command.
+
+| Environment Variable                  | Default | Description                                                                               |
+| ------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
+| `TYRO_PASSWORD_MIN_LENGTH`            | `8`     | Minimum number of characters required.                                                    |
+| `TYRO_PASSWORD_MAX_LENGTH`            | `null`  | Maximum number of characters allowed (optional).                                          |
+| `TYRO_PASSWORD_REQUIRE_NUMBERS`       | `false` | When `true`, passwords must contain at least one number.                                  |
+| `TYRO_PASSWORD_REQUIRE_UPPERCASE`     | `false` | When `true`, passwords must contain at least one uppercase letter.                        |
+| `TYRO_PASSWORD_REQUIRE_LOWERCASE`     | `false` | When `true`, passwords must contain at least one lowercase letter.                        |
+| `TYRO_PASSWORD_REQUIRE_SPECIAL_CHARS` | `false` | When `true`, passwords must contain at least one special character (symbol).              |
+| `TYRO_PASSWORD_REQUIRE_CONFIRMATION`  | `false` | When `true`, requires a matching `password_confirmation` field.                           |
+| `TYRO_PASSWORD_CHECK_COMMON`          | `false` | When `true`, prevents users from using common/compromised passwords (via standard lists). |
+| `TYRO_PASSWORD_DISALLOW_USER_INFO`    | `false` | When `true`, prevents passwords from containing the user's email or parts of their name.  |
+
+Example `.env` configuration for high security:
+
+```dotenv
+TYRO_PASSWORD_MIN_LENGTH=12
+TYRO_PASSWORD_REQUIRE_NUMBERS=true
+TYRO_PASSWORD_REQUIRE_SPECIAL_CHARS=true
+TYRO_PASSWORD_CHECK_COMMON=true
+TYRO_PASSWORD_DISALLOW_USER_INFO=true
+```
 
 ## Blade Directives
 
@@ -443,16 +469,16 @@ Tyro ships with a complete set of middleware aliases for protecting your routes�
 
 ### Available Middleware
 
-| Middleware              | When to use it                                                                                       | Example                                    |
-| ----------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `auth:sanctum`          | Ensures the request is authenticated via Sanctum (or your configured guard).                        | `auth:sanctum`                             |
-| `ability:comma,list`    | Require _all_ listed abilities (role slugs and/or privilege slugs).                                  | `'ability:admin,editor,reports.run'`       |
-| `abilities:comma,list`  | Allow access when the token has _any_ of the listed abilities.                                       | `'abilities:billing.view,finance.approve'` |
-| `role:comma,list`       | Require _all_ listed roles on the authenticated user (supports wildcard `*`).                        | `'role:admin,super-admin'`                 |
-| `roles:comma,list`      | Allow access when the user holds _any_ of the listed roles.                                          | `'roles:editor,admin'`                     |
-| `privilege:comma,list`  | Require _all_ listed privileges directly on the authenticated user.                                  | `'privilege:reports.run,export.generate'`  |
-| `privileges:comma,list` | Allow access when the user has _any_ of the listed privileges.                                       | `'privileges:billing.view,reports.run'`    |
-| `tyro.log`              | Log request/response pairs for auditing.                                                             | `'tyro.log'`                               |
+| Middleware              | When to use it                                                                | Example                                    |
+| ----------------------- | ----------------------------------------------------------------------------- | ------------------------------------------ |
+| `auth:sanctum`          | Ensures the request is authenticated via Sanctum (or your configured guard).  | `auth:sanctum`                             |
+| `ability:comma,list`    | Require _all_ listed abilities (role slugs and/or privilege slugs).           | `'ability:admin,editor,reports.run'`       |
+| `abilities:comma,list`  | Allow access when the token has _any_ of the listed abilities.                | `'abilities:billing.view,finance.approve'` |
+| `role:comma,list`       | Require _all_ listed roles on the authenticated user (supports wildcard `*`). | `'role:admin,super-admin'`                 |
+| `roles:comma,list`      | Allow access when the user holds _any_ of the listed roles.                   | `'roles:editor,admin'`                     |
+| `privilege:comma,list`  | Require _all_ listed privileges directly on the authenticated user.           | `'privilege:reports.run,export.generate'`  |
+| `privileges:comma,list` | Allow access when the user has _any_ of the listed privileges.                | `'privileges:billing.view,reports.run'`    |
+| `tyro.log`              | Log request/response pairs for auditing.                                      | `'tyro.log'`                               |
 
 ### Protecting Routes (Examples)
 
@@ -495,72 +521,72 @@ Tyro ships with a powerful CLI toolbox for managing users, roles, privileges, an
 
 ### User Management Commands
 
-| Command                 | Purpose                                                                           |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| `tyro:create-user`      | Create a new user with name/email/password and attach the default role.          |
-| `tyro:update-user`      | Update a user's details by ID or email.                                           |
-| `tyro:delete-user`      | Delete a user (prevents deleting the last admin).                                 |
-| `tyro:users`            | List all users with suspension status.                                            |
-| `tyro:users-with-roles` | List all users with their assigned roles.                                         |
-| `tyro:suspend-user`     | Suspend a user with optional reason (revokes all tokens).                         |
-| `tyro:unsuspend-user`   | Remove suspension from a user.                                                    |
-| `tyro:suspended-users`  | List all suspended users with reasons.                                            |
+| Command                 | Purpose                                                                 |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `tyro:create-user`      | Create a new user with name/email/password and attach the default role. |
+| `tyro:update-user`      | Update a user's details by ID or email.                                 |
+| `tyro:delete-user`      | Delete a user (prevents deleting the last admin).                       |
+| `tyro:users`            | List all users with suspension status.                                  |
+| `tyro:users-with-roles` | List all users with their assigned roles.                               |
+| `tyro:suspend-user`     | Suspend a user with optional reason (revokes all tokens).               |
+| `tyro:unsuspend-user`   | Remove suspension from a user.                                          |
+| `tyro:suspended-users`  | List all suspended users with reasons.                                  |
 
 ### Role Management Commands
 
-| Command                      | Purpose                                                                    |
-| ---------------------------- | -------------------------------------------------------------------------- |
-| `tyro:roles`                 | Display all roles with user counts.                                        |
-| `tyro:roles-with-privileges` | Display roles with their attached privileges.                              |
-| `tyro:create-role`           | Create a new role.                                                         |
-| `tyro:update-role`           | Update a role's name or slug.                                              |
-| `tyro:delete-role`           | Delete a role (protected roles cannot be deleted).                         |
-| `tyro:assign-role`           | Assign a role to a user.                                                   |
-| `tyro:delete-user-role`      | Remove a role from a user.                                                 |
-| `tyro:role-users`            | List all users with a specific role.                                       |
-| `tyro:user-roles`            | Display a user's roles and their privileges.                               |
+| Command                      | Purpose                                            |
+| ---------------------------- | -------------------------------------------------- |
+| `tyro:roles`                 | Display all roles with user counts.                |
+| `tyro:roles-with-privileges` | Display roles with their attached privileges.      |
+| `tyro:create-role`           | Create a new role.                                 |
+| `tyro:update-role`           | Update a role's name or slug.                      |
+| `tyro:delete-role`           | Delete a role (protected roles cannot be deleted). |
+| `tyro:assign-role`           | Assign a role to a user.                           |
+| `tyro:delete-user-role`      | Remove a role from a user.                         |
+| `tyro:role-users`            | List all users with a specific role.               |
+| `tyro:user-roles`            | Display a user's roles and their privileges.       |
 
 ### Privilege Management Commands
 
-| Command                 | Purpose                                               |
-| ----------------------- | ----------------------------------------------------- |
-| `tyro:privileges`       | List all privileges and which roles have them.        |
-| `tyro:add-privilege`    | Create a new privilege.                               |
-| `tyro:update-privilege` | Update a privilege's name or slug.                    |
-| `tyro:delete-privilege` | Delete a privilege.                                   |
-| `tyro:attach-privilege` | Attach a privilege to a role.                         |
-| `tyro:detach-privilege` | Detach a privilege from a role.                       |
-| `tyro:user-privileges`  | Display all privileges a user inherits via roles.     |
+| Command                 | Purpose                                           |
+| ----------------------- | ------------------------------------------------- |
+| `tyro:privileges`       | List all privileges and which roles have them.    |
+| `tyro:add-privilege`    | Create a new privilege.                           |
+| `tyro:update-privilege` | Update a privilege's name or slug.                |
+| `tyro:delete-privilege` | Delete a privilege.                               |
+| `tyro:attach-privilege` | Attach a privilege to a role.                     |
+| `tyro:detach-privilege` | Detach a privilege from a role.                   |
+| `tyro:user-privileges`  | Display all privileges a user inherits via roles. |
 
 ### Authentication & Token Commands
 
-| Command                  | Purpose                                                           |
-| ------------------------ | ----------------------------------------------------------------- |
-| `tyro:login`             | Mint a Sanctum token for a user (by ID or email).                 |
-| `tyro:quick-token`       | Mint a token without password prompt (respects suspensions).      |
-| `tyro:logout`            | Revoke a specific token.                                          |
-| `tyro:logout-all`        | Revoke all tokens for a specific user.                            |
-| `tyro:logout-all-users`  | Revoke all tokens for all users (emergency rotation).             |
-| `tyro:me`                | Inspect a token to see user and abilities.                        |
+| Command                 | Purpose                                                      |
+| ----------------------- | ------------------------------------------------------------ |
+| `tyro:login`            | Mint a Sanctum token for a user (by ID or email).            |
+| `tyro:quick-token`      | Mint a token without password prompt (respects suspensions). |
+| `tyro:logout`           | Revoke a specific token.                                     |
+| `tyro:logout-all`       | Revoke all tokens for a specific user.                       |
+| `tyro:logout-all-users` | Revoke all tokens for all users (emergency rotation).        |
+| `tyro:me`               | Inspect a token to see user and abilities.                   |
 
 ### Setup & Maintenance Commands
 
-| Command                    | Purpose                                                     |
-| -------------------------- | ----------------------------------------------------------- |
-| `tyro:install`             | Full installation: migrations, seeds, user model setup.     |
-| `tyro:prepare-user-model`  | Add required traits to your User model.                     |
-| `tyro:seed`                | Run full seeder (roles, privileges, admin user).            |
-| `tyro:seed-roles`          | Seed only the default roles.                                |
-| `tyro:seed-privileges`     | Seed only the default privileges.                           |
-| `tyro:purge-roles`         | Remove all roles and assignments.                           |
-| `tyro:purge-privileges`    | Remove all privileges and assignments.                      |
-| `tyro:publish-config`      | Publish the config file.                                    |
-| `tyro:publish-migrations`  | Publish migration files.                                    |
-| `tyro:version`             | Display current Tyro version.                               |
-| `tyro:about`               | Display Tyro info and links.                                |
-| `tyro:doc`                 | Open documentation.                                         |
-| `tyro:star`                | Open GitHub to star the repo ⭐                             |
-| `tyro:postman-collection`  | Open the Postman collection URL.                            |
+| Command                   | Purpose                                                 |
+| ------------------------- | ------------------------------------------------------- |
+| `tyro:install`            | Full installation: migrations, seeds, user model setup. |
+| `tyro:prepare-user-model` | Add required traits to your User model.                 |
+| `tyro:seed`               | Run full seeder (roles, privileges, admin user).        |
+| `tyro:seed-roles`         | Seed only the default roles.                            |
+| `tyro:seed-privileges`    | Seed only the default privileges.                       |
+| `tyro:purge-roles`        | Remove all roles and assignments.                       |
+| `tyro:purge-privileges`   | Remove all privileges and assignments.                  |
+| `tyro:publish-config`     | Publish the config file.                                |
+| `tyro:publish-migrations` | Publish migration files.                                |
+| `tyro:version`            | Display current Tyro version.                           |
+| `tyro:about`              | Display Tyro info and links.                            |
+| `tyro:doc`                | Open documentation.                                     |
+| `tyro:star`               | Open GitHub to star the repo ⭐                         |
+| `tyro:postman-collection` | Open the Postman collection URL.                        |
 
 All commands accept non-interactive `--option` flags, making them perfect for scripts and automation.
 
@@ -582,6 +608,7 @@ $user->unsuspend();
 ```
 
 **CLI workflow:**
+
 ```bash
 # Suspend a user
 php artisan tyro:suspend-user --user=admin@example.com --reason="Manual review"

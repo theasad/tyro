@@ -5,7 +5,7 @@ use HasinHayder\Tyro\Models\Role;
 use HasinHayder\Tyro\Models\UserRole;
 
 return [
-    'version' => env('TYRO_VERSION', '1.1.3'),
+    'version' => env('TYRO_VERSION', '1.2.0'),
 
     'disable_commands' => env('TYRO_DISABLE_COMMANDS', false),
 
@@ -42,6 +42,39 @@ return [
         'enabled' => env('TYRO_CACHE_ENABLED', true),
         'store' => env('TYRO_CACHE_STORE'),
         'ttl' => env('TYRO_CACHE_TTL', 300),
+    ],
+
+    'password' => [
+        // Minimum password length
+        'min_length' => env('TYRO_PASSWORD_MIN_LENGTH', 8),
+
+        // Maximum password length (null for no limit)
+        'max_length' => env('TYRO_PASSWORD_MAX_LENGTH', null),
+
+        // Require password confirmation
+        'require_confirmation' => env('TYRO_PASSWORD_REQUIRE_CONFIRMATION', false),
+
+        // Password complexity requirements
+        'complexity' => [
+            // Require at least one uppercase letter
+            'require_uppercase' => env('TYRO_PASSWORD_REQUIRE_UPPERCASE', false),
+
+            // Require at least one lowercase letter
+            'require_lowercase' => env('TYRO_PASSWORD_REQUIRE_LOWERCASE', false),
+
+            // Require at least one number
+            'require_numbers' => env('TYRO_PASSWORD_REQUIRE_NUMBERS', false),
+
+            // Require at least one special character
+            'require_special_chars' => env('TYRO_PASSWORD_REQUIRE_SPECIAL_CHARS', false),
+
+        ],
+
+        // Common password validation
+        'check_common_passwords' => env('TYRO_PASSWORD_CHECK_COMMON', false),
+
+        // Disallow user information in password (email, name parts)
+        'disallow_user_info' => env('TYRO_PASSWORD_DISALLOW_USER_INFO', false),
     ],
 
     'abilities' => [

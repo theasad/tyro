@@ -2,6 +2,7 @@
 
 namespace HasinHayder\Tyro\Console\Commands;
 
+use HasinHayder\Tyro\Support\PasswordRules;
 use HasinHayder\Tyro\Support\TyroCache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -48,6 +49,18 @@ class CreateUserCommand extends BaseTyroCommand {
         if (!$password) {
             $password = Str::random(16);
             $generatedPassword = true;
+        } else {
+            $validator = Validator::make(['password' => $password], [
+                'password' => PasswordRules::get(['name' => $name, 'email' => $email]),
+            ]);
+
+            if ($validator->fails()) {
+                foreach ($validator->errors()->all() as $error) {
+                    $this->error($error);
+                }
+
+                return self::FAILURE;
+            }
         }
 
         /** @var \Illuminate\Database\Eloquent\Model $user */
